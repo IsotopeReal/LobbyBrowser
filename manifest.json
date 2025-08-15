@@ -1,0 +1,11 @@
+{
+  "name": "PEAKLobbyBrowser",
+  "description": "This mod enhances your gaming experience by providing a powerful and user-friendly interface with advanced filtering options to browse games.",
+  "version_number": "1.1.1",
+  "website_url": "https://discord.gg/VAUMdCfaND",
+  "dependencies": [
+    "BepInEx-BepInExPack_PEAK-5.4.2403",
+    "PEAKModding-PEAKLib_Core-1.2.0",
+    "PEAKModding-PEAKLib_UI-1.3.0"
+  ]
+}

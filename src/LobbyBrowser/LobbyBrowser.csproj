@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>PEAKLobbyBrowser</AssemblyName>
+    <AssemblyTitle>LobbyBrowser</AssemblyTitle>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="com.github.PEAKModding.PEAKLib.Core">
+      <HintPath>..\..\..\..\..\..\AppData\Roaming\com.kesomannen.gale\peak\profiles\Default\BepInEx\plugins\PEAKModding-PEAKLib_Core\com.github.PEAKModding.PEAKLib.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="com.github.PEAKModding.PEAKLib.UI">
+      <HintPath>..\..\..\..\..\..\AppData\Roaming\com.kesomannen.gale\peak\profiles\Default\BepInEx\plugins\PEAKModding-PEAKLib_UI\com.github.PEAKModding.PEAKLib.UI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
