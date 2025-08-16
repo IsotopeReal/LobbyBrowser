@@ -20,32 +20,32 @@ namespace PEAKLobbyBrowser
 
     [BepInDependency(CorePlugin.Id)]
     [BepInDependency(UIPlugin.Id)]
-    [BepInPlugin("PEAKLobbyBrowser", "PEAK Lobby Browser", "1.1.2")]
+    [BepInPlugin("PEAKLobbyBrowser", "PEAK Lobby Browser", "1.2.0")]
     public class PEAKLobbyBrowser : BaseUnityPlugin
     {
-        public static PEAKLobbyBrowser Instance { get; private set; }
-        internal static ManualLogSource Log;
+        public static PEAKLobbyBrowser Instance { get; private set; } = null!;
+        internal static ManualLogSource Log = null!;
 
         private bool isSearchingForLobbies = false;
         private List<LobbyDetails> publicLobbies = new List<LobbyDetails>();
         private const string LobbyBrowserKey = "peak_lobby_browser_public";
-        protected Callback<LobbyMatchList_t> m_LobbyMatchList;
-        private static PeakCustomPage lobbyBrowserPage;
-        private static PeakScrollableContent lobbyListContainer;
-        private static PeakCustomPage lobbySettingsPage;
-        private static PeakTextInput lobbyNameInput;
-        private static PeakTextInput lobbyLanguageInput;
-        private static PeakTextInput lobbyDescriptionInput;
-        private static PeakTextInput modpackIdInput;
-        private static PeakButton visibilityButton;
+        protected Callback<LobbyMatchList_t> m_LobbyMatchList = null!;
+        private static PeakCustomPage? lobbyBrowserPage;
+        private static PeakScrollableContent? lobbyListContainer;
+        private static PeakCustomPage? lobbySettingsPage;
+        private static PeakTextInput? lobbyNameInput;
+        private static PeakTextInput? lobbyLanguageInput;
+        private static PeakTextInput? lobbyDescriptionInput;
+        private static PeakTextInput? modpackIdInput;
+        private static PeakButton? visibilityButton;
         private static LobbyVisibility currentVisibility = LobbyVisibility.Public;
-        private static PeakTextInput searchInput;
+        private static PeakTextInput? searchInput;
         private static string currentSearchTerm = "";
         private static int currentPage = 0;
         private const int LobbiesPerPage = 5;
-        private static PeakText pageInfoText;
-        private static PeakMenuButton previousButton;
-        private static PeakMenuButton nextButton;
+        private static PeakText? pageInfoText;
+        private static PeakMenuButton? previousButton;
+        private static PeakMenuButton? nextButton;
 
         private bool isModConfigInstalled;
 
@@ -66,7 +66,6 @@ namespace PEAKLobbyBrowser
         private void OnDestroy()
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
-
             if (m_LobbyMatchList != null)
             {
                 m_LobbyMatchList.Dispose();
@@ -133,7 +132,6 @@ namespace PEAKLobbyBrowser
                 }
 
                 var newButtonObject = Instantiate(originalButton, newParent.transform);
-
                 newButtonObject.SetActive(true);
 
                 var animator = newButtonObject.GetComponent<Animator>();
@@ -150,7 +148,6 @@ namespace PEAKLobbyBrowser
         private IEnumerator ModifyLobbyBrowserButton(GameObject buttonObject)
         {
             yield return new WaitForEndOfFrame();
-
             buttonObject.name = "Button_LobbyBrowser";
 
             var nextLevelUI = GameObject.Find("MainMenu/Canvas/MainPage/NextLevelUI");
@@ -167,11 +164,9 @@ namespace PEAKLobbyBrowser
             buttonRect.anchorMax = nextLevelRect.anchorMax;
 
             buttonRect.pivot = new Vector2(0.5f, 0.5f);
-
             float verticalOffset = nextLevelRect.rect.height + 15f;
 
             var fineTuneOffset = new Vector2(-180f, 40f);
-
             buttonRect.anchoredPosition = nextLevelRect.anchoredPosition - new Vector2(0, verticalOffset) + fineTuneOffset;
 
             buttonObject.transform.localScale = new Vector3(-1f, 1.3f, 1f);
@@ -180,7 +175,6 @@ namespace PEAKLobbyBrowser
             if (buttonText != null)
             {
                 buttonText.text = "LOBBY BROWSER";
-
                 buttonText.transform.localScale = new Vector3(-0.9f, 0.7f, 0.9f);
             }
 
@@ -201,7 +195,6 @@ namespace PEAKLobbyBrowser
             try
             {
                 Transform realParent = backButton.parent;
-
                 PeakMenuButton lobbyButton = MenuAPI.CreatePauseMenuButton("LOBBY SETTINGS")
                     .ParentTo(realParent)
                     .OnClick(() =>
@@ -209,7 +202,6 @@ namespace PEAKLobbyBrowser
                         UIInputHandler.SetSelectedObject(null);
                         OpenLobbySettingsPage();
                     });
-
                 lobbyButton.gameObject.name = "Button_LobbySettings";
 
                 StartCoroutine(PositionLobbySettingsButton(lobbyButton.gameObject, backButton, isModConfigInstalled));
@@ -223,11 +215,9 @@ namespace PEAKLobbyBrowser
         private IEnumerator PositionLobbySettingsButton(GameObject lobbyButton, Transform backButton, bool modConfigInstalled)
         {
             yield return new WaitForEndOfFrame();
-
             var lobbyButtonRect = lobbyButton.GetComponent<RectTransform>();
             var backButtonRect = backButton.GetComponent<RectTransform>();
             float spacing = 15f;
-
             if (modConfigInstalled)
             {
                 float modSettingsButtonHeight = 70f;
@@ -247,7 +237,7 @@ namespace PEAKLobbyBrowser
 
         #endregion
 
-        #region Create Lobby Settings Page
+        #region Create Lobby Pages
 
         private void CreateLobbyBrowserPage()
         {
@@ -268,6 +258,7 @@ namespace PEAKLobbyBrowser
                 .SetPosition(new Vector2(325, -120f))
                 .SetSize(new Vector2(150f, 50f))
                 .OnClick(() => {
+                    if (searchInput == null) return;
                     currentPage = 0;
                     currentSearchTerm = searchInput.InputField.text;
                     PopulateLobbyPage();
@@ -293,6 +284,10 @@ namespace PEAKLobbyBrowser
                 RefreshLobbyList();
             });
             MenuAPI.CreateMenuButton("Close").ParentTo(lobbyBrowserPage.transform).SetAnchorMinMax(new Vector2(0.5f, 0f)).SetPivot(new Vector2(-0.1f, 0f)).SetPosition(new Vector2(0, 100f)).SetWidth(200f).OnClick(() => lobbyBrowserPage.Hide());
+            MenuAPI.CreateMenuButton("Join from Clipboard").ParentTo(lobbyBrowserPage.transform).SetAnchorMinMax(new Vector2(0.5f, 0f)).SetPivot(new Vector2(0.5f, 0f)).SetPosition(new Vector2(0, 165f)).SetWidth(280f).OnClick(() =>
+            {
+                ParseAndJoinLobby(GUIUtility.systemCopyBuffer);
+            });
 
             pageInfoText = MenuAPI.CreateText("Page 1 / 1")
                 .ParentTo(lobbyBrowserPage.transform)
@@ -301,6 +296,60 @@ namespace PEAKLobbyBrowser
                 .SetPosition(new Vector2(0, 70f))
                 .SetFontSize(24f);
         }
+
+        private void CreateLobbySettingsPage()
+        {
+            if (lobbySettingsPage != null) return;
+            lobbySettingsPage = MenuAPI.CreatePageWithBackground("Lobby Settings Page");
+            var pageCanvas = lobbySettingsPage.GetComponent<Canvas>();
+            if (pageCanvas != null)
+            {
+                pageCanvas.overrideSorting = true;
+                pageCanvas.sortingOrder = 999;
+            }
+            MenuAPI.CreateText("Lobby Settings").SetFontSize(48f).ParentTo(lobbySettingsPage.transform).SetAnchorMinMax(new Vector2(0.5f, 1f)).SetPivot(new Vector2(0.5f, 1f)).SetPosition(new Vector2(0, -50f));
+            var settingsContainer = MenuAPI.CreateScrollableContent("SettingsContainer").ParentTo(lobbySettingsPage.transform).SetAnchorMinMax(new Vector2(0.5f, 0.5f)).SetPivot(new Vector2(0.5f, 0.5f)).SetSize(new Vector2(600f, 600f));
+            var content = settingsContainer.Content;
+
+            MenuAPI.CreateText("Lobby Name:").ParentTo(content).SetFontSize(24f);
+            lobbyNameInput = MenuAPI.CreateTextInput("LobbyNameInput").ParentTo(content);
+            if (lobbyNameInput != null) lobbyNameInput.InputField.characterLimit = 40;
+
+            MenuAPI.CreateText("Language:").ParentTo(content).SetFontSize(24f);
+            lobbyLanguageInput = MenuAPI.CreateTextInput("LobbyLanguageInput").ParentTo(content);
+            if (lobbyLanguageInput != null) lobbyLanguageInput.InputField.characterLimit = 10;
+
+            MenuAPI.CreateText("Description:").ParentTo(content).SetFontSize(22f);
+            lobbyDescriptionInput = MenuAPI.CreateTextInput("LobbyDescriptionInput").ParentTo(content);
+            if (lobbyDescriptionInput != null) lobbyDescriptionInput.InputField.characterLimit = 60;
+
+            MenuAPI.CreateText("Modpack:").ParentTo(content).SetFontSize(18f);
+            modpackIdInput = MenuAPI.CreateTextInput("ModpackIdInput").ParentTo(content);
+            if (modpackIdInput != null) modpackIdInput.InputField.characterLimit = 44;
+
+            visibilityButton = MenuAPI.CreateButton("Visibility: Public").ParentTo(content).SetHeight(50f).OnClick(() => CycleLobbyVisibility());
+            MenuAPI.CreateMenuButton("Create/Apply").ParentTo(lobbySettingsPage.transform).SetAnchorMinMax(new Vector2(0.5f, 0f)).SetPivot(new Vector2(1.1f, 0f)).SetPosition(new Vector2(0, 100f)).SetWidth(200f).OnClick(() => ApplyLobbySettings());
+            MenuAPI.CreateMenuButton("Close").ParentTo(lobbySettingsPage.transform).SetAnchorMinMax(new Vector2(0.5f, 0f)).SetPivot(new Vector2(-0.1f, 0f)).SetPosition(new Vector2(0, 100f)).SetWidth(200f).OnClick(() => lobbySettingsPage.Hide());
+            MenuAPI.CreateMenuButton("Copy Lobby Link").ParentTo(lobbySettingsPage.transform).SetAnchorMinMax(new Vector2(0.5f, 0f)).SetPivot(new Vector2(0.5f, 0f)).SetPosition(new Vector2(0, 170f)).SetWidth(250f).OnClick(() =>
+            {
+                if (GameHandler.GetService<SteamLobbyHandler>().InSteamLobby(out CSteamID lobbyID))
+                {
+
+                    string gameAppId = "3527290";
+                    string lobbyLink = $"steam://joinlobby/{gameAppId}/{lobbyID.m_SteamID}/{SteamUser.GetSteamID().m_SteamID}";
+                    GUIUtility.systemCopyBuffer = lobbyLink;
+                    Log.LogInfo($"Copied lobby link to clipboard: {lobbyLink}");
+                }
+                else
+                {
+                    Log.LogWarning("Could not copy lobby link: Not currently in a Steam lobby.");
+                }
+            });
+        }
+
+        #endregion
+
+        #region Lobby Browser Page
 
         private void PopulateLobbyPage()
         {
@@ -356,7 +405,7 @@ namespace PEAKLobbyBrowser
                     .ParentTo(lobbyEntry.transform).SetAnchorMinMax(new Vector2(0f, 0.5f)).SetPivot(new Vector2(0f, 0.5f)).SetPosition(new Vector2(20f, 0)).SetFontSize(20f);
                 MenuAPI.CreateMenuButton("Join").ParentTo(lobbyEntry.transform).SetAnchorMinMax(new Vector2(1f, 0.5f)).SetPivot(new Vector2(1f, 0.5f)).SetPosition(new Vector2(-20f, 0)).SetWidth(150f).OnClick(() => {
                     AttemptToJoinLobby(lobby.LobbyID.ToString());
-                    lobbyBrowserPage.Hide();
+                    if (lobbyBrowserPage != null) lobbyBrowserPage.Hide();
                 });
             }
         }
@@ -387,48 +436,15 @@ namespace PEAKLobbyBrowser
         private void OpenLobbyBrowserPage()
         {
             CreateLobbyBrowserPage();
-            StartCoroutine(ShowPageAfterCreation(lobbyBrowserPage));
-
-            if (searchInput != null) searchInput.InputField.text = "";
-            currentSearchTerm = "";
-            currentPage = 0;
-            lobbyBrowserPage.Show();
-            RefreshLobbyList();
-        }
-
-        private void CreateLobbySettingsPage()
-        {
-            if (lobbySettingsPage != null) return;
-            lobbySettingsPage = MenuAPI.CreatePageWithBackground("Lobby Settings Page");
-            var pageCanvas = lobbySettingsPage.GetComponent<Canvas>();
-            if (pageCanvas != null)
+            if (lobbyBrowserPage != null)
             {
-                pageCanvas.overrideSorting = true;
-                pageCanvas.sortingOrder = 999;
+                StartCoroutine(ShowPageAfterCreation(lobbyBrowserPage));
+                if (searchInput != null) searchInput.InputField.text = "";
+                currentSearchTerm = "";
+                currentPage = 0;
+                lobbyBrowserPage.Show();
+                RefreshLobbyList();
             }
-            MenuAPI.CreateText("Lobby Settings").SetFontSize(48f).ParentTo(lobbySettingsPage.transform).SetAnchorMinMax(new Vector2(0.5f, 1f)).SetPivot(new Vector2(0.5f, 1f)).SetPosition(new Vector2(0, -50f));
-            var settingsContainer = MenuAPI.CreateScrollableContent("SettingsContainer").ParentTo(lobbySettingsPage.transform).SetAnchorMinMax(new Vector2(0.5f, 0.5f)).SetPivot(new Vector2(0.5f, 0.5f)).SetSize(new Vector2(600f, 600f));
-            var content = settingsContainer.Content;
-
-            MenuAPI.CreateText("Lobby Name:").ParentTo(content).SetFontSize(24f);
-            lobbyNameInput = MenuAPI.CreateTextInput("LobbyNameInput").ParentTo(content);
-            lobbyNameInput.InputField.characterLimit = 40;
-
-            MenuAPI.CreateText("Language:").ParentTo(content).SetFontSize(24f);
-            lobbyLanguageInput = MenuAPI.CreateTextInput("LobbyLanguageInput").ParentTo(content);
-            lobbyLanguageInput.InputField.characterLimit = 10;
-
-            MenuAPI.CreateText("Description:").ParentTo(content).SetFontSize(22f);
-            lobbyDescriptionInput = MenuAPI.CreateTextInput("LobbyDescriptionInput").ParentTo(content);
-            lobbyDescriptionInput.InputField.characterLimit = 60;
-
-            MenuAPI.CreateText("Modpack:").ParentTo(content).SetFontSize(18f);
-            modpackIdInput = MenuAPI.CreateTextInput("ModpackIdInput").ParentTo(content);
-            modpackIdInput.InputField.characterLimit = 44;
-
-            visibilityButton = MenuAPI.CreateButton("Visibility: Public").ParentTo(content).SetHeight(50f).OnClick(() => CycleLobbyVisibility());
-            MenuAPI.CreateMenuButton("Apply Settings").ParentTo(lobbySettingsPage.transform).SetAnchorMinMax(new Vector2(0.5f, 0f)).SetPivot(new Vector2(1.1f, 0f)).SetPosition(new Vector2(0, 100f)).SetWidth(200f).OnClick(() => ApplyLobbySettings());
-            MenuAPI.CreateMenuButton("Close").ParentTo(lobbySettingsPage.transform).SetAnchorMinMax(new Vector2(0.5f, 0f)).SetPivot(new Vector2(-0.1f, 0f)).SetPosition(new Vector2(0, 100f)).SetWidth(200f).OnClick(() => lobbySettingsPage.Hide());
         }
 
         private void CycleLobbyVisibility()
@@ -448,40 +464,54 @@ namespace PEAKLobbyBrowser
         private void OpenLobbySettingsPage()
         {
             CreateLobbySettingsPage();
-            StartCoroutine(ShowPageAfterCreation(lobbyBrowserPage));
-
-            if (GameHandler.GetService<SteamLobbyHandler>().InSteamLobby(out CSteamID lobbyID))
+            if (lobbySettingsPage != null)
             {
-                lobbyNameInput.InputField.text = SteamMatchmaking.GetLobbyData(lobbyID, "lobbyName");
-                lobbyLanguageInput.InputField.text = SteamMatchmaking.GetLobbyData(lobbyID, "language");
-                lobbyDescriptionInput.InputField.text = SteamMatchmaking.GetLobbyData(lobbyID, "description");
-                modpackIdInput.InputField.text = SteamMatchmaking.GetLobbyData(lobbyID, "modpackId");
-                if (string.IsNullOrWhiteSpace(lobbyLanguageInput.InputField.text))
+                StartCoroutine(ShowPageAfterCreation(lobbySettingsPage));
+
+                if (lobbyNameInput != null)
                 {
-                    string steamLanguage = SteamApps.GetCurrentGameLanguage();
-                    if (!string.IsNullOrEmpty(steamLanguage))
-                    {
-                        steamLanguage = char.ToUpper(steamLanguage[0]) + steamLanguage.Substring(1);
-                    }
-                    lobbyLanguageInput.InputField.text = steamLanguage;
+                    lobbyNameInput.InputField.text = $"{SteamFriends.GetPersonaName()}'s Lobby";
                 }
 
-                if (SteamMatchmaking.GetLobbyData(lobbyID, LobbyBrowserKey) == "true")
+                if (GameHandler.GetService<SteamLobbyHandler>().InSteamLobby(out CSteamID lobbyID))
                 {
-                    currentVisibility = LobbyVisibility.Public;
+                    string existingLobbyName = SteamMatchmaking.GetLobbyData(lobbyID, "lobbyName");
+                    if (lobbyNameInput != null && !string.IsNullOrWhiteSpace(existingLobbyName))
+                    {
+                        lobbyNameInput.InputField.text = existingLobbyName;
+                    }
+
+                    if (lobbyLanguageInput != null) lobbyLanguageInput.InputField.text = SteamMatchmaking.GetLobbyData(lobbyID, "language");
+                    if (lobbyDescriptionInput != null) lobbyDescriptionInput.InputField.text = SteamMatchmaking.GetLobbyData(lobbyID, "description");
+                    if (modpackIdInput != null) modpackIdInput.InputField.text = SteamMatchmaking.GetLobbyData(lobbyID, "modpackId");
+
+                    if (lobbyLanguageInput != null && string.IsNullOrWhiteSpace(lobbyLanguageInput.InputField.text))
+                    {
+                        string steamLanguage = SteamApps.GetCurrentGameLanguage();
+                        if (!string.IsNullOrEmpty(steamLanguage))
+                        {
+                            steamLanguage = char.ToUpper(steamLanguage[0]) + steamLanguage.Substring(1);
+                        }
+                        lobbyLanguageInput.InputField.text = steamLanguage;
+                    }
+
+                    if (SteamMatchmaking.GetLobbyData(lobbyID, LobbyBrowserKey) == "true")
+                    {
+                        currentVisibility = LobbyVisibility.Public;
+                    }
+                    else
+                    {
+                        currentVisibility = LobbyVisibility.Public;
+                    }
+                    UpdateVisibilityButtonText();
                 }
-                else
-                {
-                    currentVisibility = LobbyVisibility.Public;
-                }
-                UpdateVisibilityButtonText();
+                lobbySettingsPage.Show();
             }
-            lobbySettingsPage.Show();
         }
 
         private void ApplyLobbySettings()
         {
-            if (GameHandler.GetService<SteamLobbyHandler>().InSteamLobby(out CSteamID lobbyID))
+            if (GameHandler.GetService<SteamLobbyHandler>().InSteamLobby(out CSteamID lobbyID) && lobbyNameInput != null && lobbyLanguageInput != null && lobbyDescriptionInput != null && modpackIdInput != null)
             {
                 Log.LogInfo($"Applying new lobby settings. Visibility: {currentVisibility}");
                 SteamMatchmaking.SetLobbyData(lobbyID, "hostName", SteamFriends.GetPersonaName());
@@ -506,12 +536,34 @@ namespace PEAKLobbyBrowser
                 }
             }
             else { Log.LogWarning("Cannot apply settings, not in a Steam lobby."); }
-            lobbySettingsPage.Hide();
+            if (lobbySettingsPage != null) lobbySettingsPage.Hide();
         }
 
         #endregion
 
-        #region Steamworks Logic
+        #region Steamworks
+
+        public void ParseAndJoinLobby(string clipboardContent)
+        {
+            if (string.IsNullOrWhiteSpace(clipboardContent))
+            {
+                return;
+            }
+
+            string lobbyIdString = clipboardContent;
+
+            string steamLinkPrefix = "steam://joinlobby/";
+            if (clipboardContent.StartsWith(steamLinkPrefix))
+            {
+                string[] parts = clipboardContent.Substring(steamLinkPrefix.Length).Split('/');
+                if (parts.Length >= 2)
+                {
+                    lobbyIdString = parts[1];
+                }
+            }
+
+            AttemptToJoinLobby(lobbyIdString);
+        }
 
         public void RefreshLobbyList()
         {
@@ -578,6 +630,5 @@ namespace PEAKLobbyBrowser
         }
 
         #endregion
-
     }
 }

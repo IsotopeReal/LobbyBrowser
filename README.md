@@ -4,32 +4,40 @@
 ### This mod enhances your gaming experience by providing a powerful and user-friendly interface to browse games.
 #### This mod makes it easier than ever to find the perfect lobby.
 
-![](https://i.imgur.com/RszJkBi.png)
-![](https://i.imgur.com/rwCzhob.png)
+![](https://i.imgur.com/fuGDXpq.png)
+![](https://i.imgur.com/P4LcBs8.png)
 
-This mod is still a work in progress.\
-If you experience any major issues or crashing, please disable the mod and make a report in the relevant thread within the [PEAK Modding Discord](https://discord.com/channels/1363179626435707082/1395010396212953138)
+If you experience any major issues, please disable/downgrade the mod and make a report in the relevant thread within the [PEAK Modding Discord](https://discord.com/channels/1363179626435707082/1395010396212953138).
 
 ## Features
-+ Real-Time Lobby Listings:
++ **Real-Time Lobby Listings**
    + View all available lobbies in real-time, ensuring you never miss an opportunity to join a game.
-+ Lobby Visibility/Privacy
++ **Lobby Visibility/Privacy**
    + Want to play with just friends only while using this mod? Not a problem.
-+ Advanced Filtering Options:
++ **Advanced Filtering Options**
    + Filter lobbies by host/lobby name, language and modpack ID to find the lobby that suits your preferences.
    + Click a lobby in the list to copy the modpack id to clipboard.
-+ User-Friendly Interface:
++ **User-Friendly Interface**
    + Enjoy a clean and intuitive interface designed for easy navigation and quick access to all features.
-+ Non-Intrusive
++ **Non-Intrusive**
    + This mod will only list public lobbies for users that have this mod installed.
 
 - This mod does **NOT** include an anti-cheat or player count increaser, get those mods separately.
 
 ## How To Use
 **Lobby Browser Button can be found below the New Island Timer UI.\
-Lobby Settings Button can be found within the Settings.**
+Lobby Settings Button can be found within the Settings, below the Back button.**
 
+Your Lobby will not be publicly listed until you click the **Create/Apply** button.
+
+The **Join from Clipboard** button will allow you to join via a copied steam lobbyid or join link, no more web browser needed.\
+(steam://joinlobby/3527290/**STEAMLOBBYID**/..........................................)\
+Just double click the steam lobby id within the joinlobby link to easily copy it on discord etc..\
+(Be careful not to click ANY http/s links on discord.)
+
+## Installation
 Use a Mod Manager and install like any other mod, otherwise you can install it manually.\
+Make sure you install PEAKLib Core/UI and their required dependencies.\
 Click Manual Download, open the zip, drop only the PEAKLobbyBrowser.dll file into the below path.\
 \Program Files (x86)\Steam\steamapps\common\PEAK\BepInEx\plugins\
 

@@ -1,7 +1,7 @@
 {
   "name": "PEAKLobbyBrowser",
   "description": "This mod enhances your gaming experience by providing a powerful and user-friendly interface with advanced filtering options to browse games.",
-  "version_number": "1.1.2",
+  "version_number": "1.2.0",
   "website_url": "https://github.com/IsotopeReal/LobbyBrowser",
   "dependencies": [
     "BepInEx-BepInExPack_PEAK-5.4.75301",
